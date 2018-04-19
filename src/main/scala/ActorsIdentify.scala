@@ -7,7 +7,7 @@ class CheckActor extends Actor {
 
   val log = Logging(context.system, this)
 
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case path: String =>
       log.info(s"checking path => $path")
       // 액터 경로에 있는 액터 참조 얻기

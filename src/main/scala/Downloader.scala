@@ -9,6 +9,8 @@ import scala.concurrent.duration._
 import scala.io.Source
 import mySystem._
 
+import scala.language.postfixOps
+
 /**
   * A Downloader actor
   *

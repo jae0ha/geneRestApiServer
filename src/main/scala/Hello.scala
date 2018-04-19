@@ -47,10 +47,9 @@ class ParentActor extends Actor {
 class ChildActor extends Actor {
   val log = Logging(context.system, this)
   def receive = {
-    case "hi" => {
+    case "hi" =>
       val parent = context.parent
       log.info(s"my parent $parent made me say hi!")
-    }
   }
 
   override def postStop(): Unit = {
