@@ -1,0 +1,33 @@
+@startuml
+
+scale 500 width
+[*] --> actorLifeCycle
+
+state actorLifeCycle {
+  [*] --> actorObject : actorOf \n(actor path reserved \nactor object created \npreStart called)
+  actorObject --> actorObject : message processed \nnormally
+  actorObject --> newActorObject : preRestart called \non the old actor object
+  newActorObject --> actorObject : postRestart called \non the new actor object
+  actorObject --> [*]: actor instance stopped \npostStop called \nactor path released
+}
+
+actorLifeCycle --> [*]
+
+/'state NotShooting {
+  [*] --> Idle
+  Idle --> Configuring : EvConfig
+  Configuring --> Idle : EvConfig
+}
+
+state Configuring {
+  [*] --> NewValueSelection
+  NewValueSelection --> NewValuePreview : EvNewValue
+  NewValuePreview --> NewValueSelection : EvNewValueRejected
+  NewValuePreview --> NewValueSelection : EvNewValueSaved
+
+  state NewValuePreview {
+     State1 -> State2
+  }'/
+
+}
+@enduml
