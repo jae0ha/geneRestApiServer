@@ -1,9 +1,9 @@
 import akka.actor.{Actor, Props}
 import akka.event.Logging
+import mySystem._
 
 import scala.collection.mutable
-import scala.io.{BufferedSource, Source}
-import mySystem._
+import scala.io.Source
 
 /**
   * become !!!
@@ -42,8 +42,9 @@ class DictionaryActor extends Actor {
   def uninitialized: PartialFunction[Any, Unit] = {
     // received Init then become initialized state become
     case DictionaryActor.Init(path) =>
-      val stream = getClass.getResourceAsStream(path)
-      val words: BufferedSource = Source.fromInputStream(stream)
+      //val stream = getClass.getResourceAsStream(path)
+      //val words: BufferedSource = Source.fromInputStream(stream)
+      val words = Source.fromFile("C:/smartPlatform/geneRestApiServer/words.txt")
       for (w <- words.getLines) dictionary += w
       context.become(initialized)
   }
@@ -52,12 +53,12 @@ class DictionaryActor extends Actor {
   def initialized: PartialFunction[Any, Unit] = {
     case DictionaryActor.IsWord(w) =>
       log.info(s"word '$w' exist: ${dictionary(w)}")
-    // if recieved End message then become uninitialized state
+    // if received End message then become uninitialized state
     case DictionaryActor.End =>
       dictionary.clear
       context.become(uninitialized)
   }
-
+5
   // unhandled massage
   override def unhandled(msg: Any): Unit = {
     log.info(s"message $msg should not be send in this state.")
@@ -65,11 +66,12 @@ class DictionaryActor extends Actor {
 }
 
 object DictionaryActor {
-
+  // case class  < http://wiki.ucsit.co.kr/dokuwiki/doku.php?id=case_class >
   case class Init(path: String)
 
   case class IsWord(w: String)
 
+  // TODO : case object?
   case object End
 
 }
@@ -79,7 +81,7 @@ object ActorsBecome extends App {
   val dict = ourSystem.actorOf(Props[DictionaryActor], "dictionary")
   dict ! DictionaryActor.IsWord("program")
   Thread.sleep(SLEEP_TIME)
-  dict ! DictionaryActor.Init("/org/learningconcurrency/words.txt")
+  dict ! DictionaryActor.Init("/words.txt")
   Thread.sleep(SLEEP_TIME)
   dict ! DictionaryActor.IsWord("program")
   Thread.sleep(SLEEP_TIME)
