@@ -37,18 +37,18 @@ class Downloader extends Actor {
   * Map
   * workItems Map[ActorRef, DownloadManager.Download]
   *
-  * @param downloadSlots : downloaders
+  * @param downloadSlots : downLoaders
   */
 class DownloadManager(val downloadSlots: Int) extends Actor {
   val log = Logging(context.system, this)
-  val downloaders = mutable.Queue[ActorRef]()
-  val pendingWork = mutable.Queue[DownloadManager.Download]()
-  val workItems = mutable.Map[ActorRef, DownloadManager.Download]()
+  val downLoaders: mutable.Queue[ActorRef] = mutable.Queue[ActorRef]()
+  val pendingWork: mutable.Queue[DownloadManager.Download] = mutable.Queue[DownloadManager.Download]()
+  val workItems: mutable.Map[ActorRef, DownloadManager.Download] = mutable.Map[ActorRef, DownloadManager.Download]()
 
   /** make downloader actor when preStart and enqueue to downloaders queue */
   override def preStart(): Unit = {
     for (i <- 0 until downloadSlots)
-      downloaders.enqueue(context.actorOf(Props[Downloader], s"downloader$i"))
+      downLoaders.enqueue(context.actorOf(Props[Downloader], s"downloader$i"))
   }
 
   /** if pendingwork exist and downloader is in downloaders queue
@@ -56,10 +56,10 @@ class DownloadManager(val downloadSlots: Int) extends Actor {
     * and put map downloader(key), work(val)
     */
   private def checkMoreDownloads(): Unit = {
-    if (pendingWork.nonEmpty && downloaders.nonEmpty) {
-      val dl = downloaders.dequeue()
+    if (pendingWork.nonEmpty && downLoaders.nonEmpty) {
+      val dl = downLoaders.dequeue()
       val workItem = pendingWork.dequeue()
-      log.info(s"$workItem starting, ${downloaders.size} download slots left")
+      log.info(s"$workItem starting, ${downLoaders.size} download slots left")
       dl ! workItem
       workItems(dl) = workItem
     }
@@ -81,25 +81,27 @@ class DownloadManager(val downloadSlots: Int) extends Actor {
     case msg@DownloadManager.Download(url, dest) =>
       pendingWork.enqueue(msg)
       checkMoreDownloads()
-    // TODO : why not using @ ???
-    case DownloadManager.Finished(dest) =>
+    case _@DownloadManager.Finished(dest) =>
       workItems.remove(sender)
-      downloaders.enqueue(sender)
-      log.info(s"Down to '$dest' finishied, ${downloaders.size} down slots left")
+      downLoaders.enqueue(sender)
+      log.info(s"Down to '$dest' finishied, ${downLoaders.size} down slots left")
       checkMoreDownloads()
   }
+
+  val MAX_NR_OF_RETRIES = 6
+  val WITHIN_TIME_RANGE = 30
 
   /**
     * Supervisor strategy
     * FileNotFoundException : resume
     * else : escalate
     */
-  override val supervisorStrategy =
-    OneForOneStrategy(maxNrOfRetries = 6, withinTimeRange = 30 seconds) {
+  override val supervisorStrategy: OneForOneStrategy =
+    OneForOneStrategy(maxNrOfRetries = MAX_NR_OF_RETRIES, withinTimeRange = WITHIN_TIME_RANGE seconds) {
       case fnf: java.io.FileNotFoundException =>
         log.info(s"Resource could not be found : $fnf")
         workItems.remove(sender)
-        downloaders.enqueue(sender)
+        downLoaders.enqueue(sender)
         Resume
       case _ =>
         Escalate
@@ -120,9 +122,10 @@ object DownloadManager {
 }
 
 object SupervisionDownloader extends App {
-  val manager = ourSystem.actorOf(Props(classOf[DownloadManager], 4), "manager")
+  val DOWNLOAD_SLOTS = 4
+  val SLEEP_TIME = 1000
+  val manager = ourSystem.actorOf(Props(classOf[DownloadManager], DOWNLOAD_SLOTS), "manager")
   manager ! Download("http://www.w3.org/Addressing/URL/url-spec.txt", "url-spec.txt")
-  //Thread.sleep(1000)
   manager ! Download("https://github.com/scala/scala/blob/2.13.x/README.md", "README.md")
   manager ! Download("https://github.com/scala/scala/blob/2.13.x/README.md", "README.md")
   manager ! Download("https://github.com/scala/scala/blob/2.13.x/README.md", "README.md")
@@ -133,8 +136,8 @@ object SupervisionDownloader extends App {
   manager ! Download("https://github.com/scala/scala/blob/2.13.x/README.md", "README.md")
   manager ! Download("https://github.com/scala/scala/blob/2.13.x/README.md", "README.md")
   manager ! Download("https://github.com/scala/scala/blob/2.13.x/README.md", "README.md")
-  Thread.sleep(9000)
+  Thread.sleep(SLEEP_TIME)
   ourSystem.stop(manager)
-  Thread.sleep(9000)
+  Thread.sleep(SLEEP_TIME)
   ourSystem.terminate()
 }
