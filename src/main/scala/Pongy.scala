@@ -2,6 +2,7 @@ import akka.actor.{Actor, ActorSystem, Props}
 import akka.event.Logging
 import com.typesafe.config.{Config, ConfigFactory}
 
+// TODO : 테스트
 class Pongy extends Actor {
   val log = Logging(context.system, this)
   override def receive: PartialFunction[Any, Unit] = {

@@ -7,6 +7,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
+// TODO : TEST
 class Pingy extends Actor {
   def receive: PartialFunction[Any, Unit] = {
     case pongyRef: ActorRef =>
