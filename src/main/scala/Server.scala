@@ -5,6 +5,7 @@ import akka.io.{IO, Tcp}
 
 class Server extends Actor {
   import Tcp._
+  import context.system
 
   // Bind 명령을 메니저에 전달
   // port = 0 은 랜덤포트로 바인드됨 - 이렇게 쓸거면 걍 생략하지?

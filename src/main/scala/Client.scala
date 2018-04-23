@@ -1,7 +1,7 @@
 import java.net.InetSocketAddress
 
 import akka.actor.{Actor, ActorRef, Props}
-import akka.io.{IO, Tcp}
+import akka.io.Tcp
 import akka.util.ByteString
 
 // Client class companion object
@@ -16,12 +16,24 @@ class Client(remote: InetSocketAddress, listener: ActorRef) extends Actor {
 
   // TODO : class 밖의 import akka.io.{ IO, Tcp } 와의 차이점은? 왜 여기에 별도로 추가 import를 했나?
   import Tcp._
-  // 아래의 import문은 주석처리해도 동작에 지장없다. Actor에 포함되어있으니까?
-  //import context.system
+  // 아래의 import context.system 를 생략하면 compile error가 발생한다.
+  // could not find implicit value for parameter system: akka.actor.ActorSystem / IO(akka.io.Tcp) ! Connect(remote)
+  // 왜 그럴까?
+  // akka.io.IO의 apply method 내용!!!!!!
+  // def apply[T <: Extension](key: ExtensionId[T])(implicit system: ActorSystem): ActorRef = key(system).manager
+  // (implicit system: ActorSystem) 이거!!! 빌어먹을!! 빼면 컴파일 에러나는 부분을 생략하면 어쩌라는 거냐???
+  // 앞으로 이런경우가 발생하면 빌어먹을 object의 apply method가 어떻게 되먹었는지 확인하자!
+  // 그런데 import context.system 으로 해결되는 이유는 뭐셔? 암묵적으로 처박히는겨? 걍 명시적으로 하지?
+  // import context.system  // 원본
 
-  // TODO : IO object에 대한 이해
-  // TODO : Tcp
-  IO(akka.io.Tcp) ! Connect(remote)
+  //IO(akka.io.Tcp) ! Connect(remote)
+  // 이렇게 바꾸면 되나 해봤다... 된다...
+  //val fuckImplicitSystem = context.system // fuck 본
+  //IO(akka.io.Tcp)(fuckImplicitSystem) ! Connect(remote)
+
+  // 또 바꿔보자 이것도 컴파일 에러는 안난다.
+  // IO(akka.io.Tcp)(context.system) ! Connect(remote)
+  // TODO : 위의 fucking한 상황을 동작에서도 문제가 없는지 확인하자... 문제 없어 보이지만...
 
   override def receive: PartialFunction[Any, Unit] = {
     // fuck @ 를 생략할 수 있다. 내부 로직에서 호출 하지 않으니까... 근데 헷깔리잖어

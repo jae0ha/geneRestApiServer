@@ -3,7 +3,7 @@ import akka.event.Logging
 import com.typesafe.config.{Config, ConfigFactory}
 
 // TODO : 테스트
-class Pongy extends Actor {
+class PPongy extends Actor {
   val log = Logging(context.system, this)
   override def receive: PartialFunction[Any, Unit] = {
     case "ping" =>
@@ -35,7 +35,7 @@ object RemotingPongySystem extends App {
 
   def remotingSystem(name: String, port: Int): ActorSystem = ActorSystem(name, remotingConfig(port))
   val system = remotingSystem(name = "PongyDimension", port = REMOTE_PORT)
-  val pongy = system.actorOf(Props[Pongy], name = "pongy")
+  val pongy = system.actorOf(Props[PPongy], name = "pongy")
   Thread.sleep(SLEEP_TIME)
   system.terminate()
 }

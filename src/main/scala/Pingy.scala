@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
 // TODO : TEST
-class Pingy extends Actor {
+class PPingy extends Actor {
   def receive: PartialFunction[Any, Unit] = {
     case pongyRef: ActorRef =>
       implicit val timeout: Timeout = Timeout(2 seconds)
@@ -19,7 +19,7 @@ class Pingy extends Actor {
 
 class Runner extends Actor {
   val log = Logging(context.system, this)
-  val pingy = context.actorOf(Props[Pingy], "pingy")
+  val pingy = context.actorOf(Props[PPingy], "pingy")
   override def receive: PartialFunction[Any, Unit] = {
     case "start" =>
       val path = context.actorSelection("akka.tcp://PongyDimention@192.168.1.35:24321/user/pong")
