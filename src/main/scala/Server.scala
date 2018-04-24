@@ -1,15 +1,18 @@
 import java.net.InetSocketAddress
 
 import akka.actor.{Actor, Props}
+import akka.event.Logging
 import akka.io.{IO, Tcp}
 
 class Server extends Actor {
   import Tcp._
   import context.system
 
+  val log = Logging(context.system, this)
+
   // Bind 명령을 메니저에 전달
   // port = 0 은 랜덤포트로 바인드됨 - 이렇게 쓸거면 걍 생략하지?
-  IO(Tcp) ! Bind(self, new InetSocketAddress( "localhost", 0))
+  IO(Tcp) ! Bind(self, new InetSocketAddress("localhost", 0))
 
   override def receive: PartialFunction[Any, Unit] = {
     // Bound message receive 서버가 접속을 받을 준비가 되었다는 신호 수신
@@ -18,6 +21,7 @@ class Server extends Actor {
     case CommandFailed(_: Bind) => context stop self
     // client와 연결 성공시
     case c @ Connected(remote, local) =>
+      log.info(s"received connection from $remote")
       val handler = context.actorOf(Props[SimplisticHandler])
       val connection = sender() // client actor
       connection ! Register(handler)
