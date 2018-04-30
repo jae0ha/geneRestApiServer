@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 // 아무튼 불변하는 값을 박아두나 보다.
 case object Greet
 
-case object Fuck
+case object Fock
 
 case class WhoToGreet(who: String)
 
@@ -29,7 +29,7 @@ class Greeter extends Actor {
   override def receive: PartialFunction[Any, Unit] = {
     case WhoToGreet(who) => greeting = s"hello, $who"
     case Greet => sender ! Greeting(greeting) // Send the current greeting back to the sender
-    case Fuck => sender ! Greeting(s"$greeting eat this $fuck")
+    case Fock => sender ! Greeting(s"$greeting eat this $fuck")
   }
 }
 
@@ -50,7 +50,7 @@ object HellowAkkaScala extends App {
   val Greeting(message1): Any = inbox.receive(5.seconds)
   println(s"Greeting: $message1")
 
-  inbox.send(target = greeter, msg = Fuck)
+  inbox.send(target = greeter, msg = Fock)
   val Greeting(fuck1): Any = inbox.receive(5.seconds)
   println(s"Fucking: $fuck1")
 
@@ -68,7 +68,7 @@ object HellowAkkaScala extends App {
     0.seconds, 1.seconds, receiver = greeter, message = Greet)(
     executor = system.dispatcher, sender = greetPrinter)
   system.scheduler.schedule(
-    0.seconds, 1.seconds, receiver = greeter, message = Fuck)(
+    0.seconds, 1.seconds, receiver = greeter, message = Fock)(
     executor = system.dispatcher, sender = greetPrinter)
 
   // schedule 구현부분
